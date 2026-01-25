@@ -150,50 +150,45 @@ function App() {
   return (
     <div className="app">
 
-      <div className="page">
-
-        {/* EXIT PROFILE */}
-        <div style={{
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginBottom: 10
-}}>
-
-  <h3 style={{ margin: 0, fontWeight: 600 }}>
-    Daily Tracker
-  </h3>
-
-  <button
-    onClick={() => setUser("")}
-    style={{
-      background: "#fff",
-      color: "#111",
-      border: "2px solid #111",
-      borderRadius: 999,
-      padding: "8px 18px",
-      fontSize: 13,
-      fontWeight: 500,
-      cursor: "pointer",
-      boxShadow: "0 6px 14px rgba(0,0,0,0.08)"
-    }}
-  >
-    Exit Profile
-  </button>
-
-</div>
-
-
 <div className="page" {...swipeHandlers}>
-  {page === "today" && <TodayPage />}
-  {page === "progress" && <ProgressPage />}
-  {page === "compare" && <Compare />}
-  {page === "leaderboard" && <Leaderboard />}
+
+  {/* HEADER */}
+  <div style={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10
+  }}>
+
+    <h3 style={{ margin: 0, fontWeight: 600 }}>
+      Daily Tracker
+    </h3>
+
+    <button
+      onClick={() => setUser("")}
+      style={{
+        background: "#fff",
+        color: "#111",
+        border: "2px solid #111",
+        borderRadius: 999,
+        padding: "8px 18px",
+        fontSize: 13,
+        fontWeight: 500,
+        boxShadow: "0 6px 14px rgba(0,0,0,0.08)"
+      }}
+    >
+      Exit Profile
+    </button>
+
+  </div>
+
+  {page === "today" && <TodayPage user={user} />}
+  {page === "progress" && <ProgressPage user={user} />}
+  {page === "compare" && <Compare user={user} />}
+  {page === "leaderboard" && <Leaderboard user={user} />}
+
 </div>
 
-
-
-      </div>
 
       {/* BOTTOM NAV */}
       <div className="nav">
