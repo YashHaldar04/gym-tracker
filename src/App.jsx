@@ -187,8 +187,8 @@ function App() {
 <div className="page" {...swipeHandlers}>
   {page === "today" && <TodayPage />}
   {page === "progress" && <ProgressPage />}
-  {page === "compare" && <ComparePage />}
-  {page === "leaderboard" && <LeaderboardPage />}
+  {page === "compare" && <Compare />}
+  {page === "leaderboard" && <Leaderboard />}
 </div>
 
 
