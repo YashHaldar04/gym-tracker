@@ -5,8 +5,20 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-body {
+html, body {
+  height: 100%;
   margin: 0;
+}
+
+#root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Body */
+
+body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: linear-gradient(
     180deg,
@@ -15,21 +27,25 @@ body {
     #ffffff 100%
   );
   color: #111;
-  min-height: 100vh;
 }
 
-/* Page container */
+/* App container */
 
 .app {
   max-width: 480px;
   margin: auto;
-  min-height: 100vh;
+  min-height: 100%;
   background: #fff;
+  display: flex;
+  flex-direction: column;
 }
+
+/* Page */
 
 .page {
   padding: 16px;
-  padding-bottom: 90px; /* space for bottom nav */
+  padding-bottom: 100px; /* space for bottom nav */
+  animation: fadeSlide 0.25s ease;
 }
 
 /* Cards */
@@ -43,7 +59,6 @@ body {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-
 .card:active {
   transform: scale(0.98);
 }
@@ -56,6 +71,7 @@ button {
   outline: none;
   cursor: pointer;
   background: none;
+  transition: transform 0.15s ease;
 }
 
 button:active {
@@ -70,9 +86,6 @@ input, select {
   border-radius: 12px;
   border: 1px solid #ddd;
   font-size: 14px;
-}
-
-select {
   background: white;
 }
 
@@ -84,11 +97,11 @@ input[type="checkbox"] {
   cursor: pointer;
 }
 
-/* Bottom nav (extra smooth) */
+/* Bottom nav */
 
 .nav {
   position: fixed;
-  bottom: 0;
+  bottom: env(safe-area-inset-bottom);
   left: 0;
   right: 0;
   background: white;
@@ -96,15 +109,10 @@ input[type="checkbox"] {
   justify-content: space-around;
   padding: 12px 0;
   border-top: 1px solid #eee;
+  z-index: 10;
 }
 
-/* Smooth page animation */
-
-
-
-.page {
-  animation: fadeSlide 0.25s ease;
-}
+/* Animations */
 
 @keyframes fadeSlide {
   from {
@@ -116,4 +124,3 @@ input[type="checkbox"] {
     transform: translateY(0);
   }
 }
-
