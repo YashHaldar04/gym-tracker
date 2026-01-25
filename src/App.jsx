@@ -96,7 +96,7 @@ function App() {
   
           <h1 style={{
             margin: 0,
-            fontSize: 32,
+            fontSize: 36,
             fontWeight: 700
           }}>
             Gym Habit Tracker
@@ -369,6 +369,17 @@ function TodayPage({ user }) {
         marginTop: 20
       }}>
         Progress auto-saves at end of day
+      </p>
+      <p></p>
+      <p style={{
+        fontSize: 12,
+        color: "#777",
+        textAlign: "center",
+        marginTop: 20
+      }}>
+        To add or delete habits, click the "+" button above.
+        This will not affect your previous logs. 
+        Your progress history will remain intact.
       </p>
 
       {/* MODAL */}
