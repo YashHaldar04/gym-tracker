@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import Leaderboard from "/src/pages/leaderboard"
 import Compare from "/src/pages/compare"
 import { supabase } from "./supabase"
+import { useSwipeable } from "react-swipeable"
 import { Line } from "react-chartjs-2"
 import {
   Chart as ChartJS,
@@ -57,9 +58,24 @@ function App() {
 
   const [quote] = useState(
     quotes[Math.floor(Math.random() * quotes.length)]
+    
   )
   
+  const pages = ["leaderboard", "compare", "today", "progress"]
 
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => {
+      const i = pages.indexOf(page)
+      if (i < pages.length - 1) setPage(pages[i + 1])
+    },
+    onSwipedRight: () => {
+      const i = pages.indexOf(page)
+      if (i > 0) setPage(pages[i - 1])
+    },
+    trackTouch: true,
+    preventScrollOnSwipe: true
+  })
+  
   // FRONT PAGE
   if (!user) {
     return (
@@ -168,27 +184,54 @@ function App() {
 </div>
 
 
-        {page === "today" && <TodayPage user={user} />}
-        {page === "progress" && <ProgressPage user={user} />}
-        {page === "compare" && <Compare />}
-        {page === "leaderboard" && <Leaderboard />}
+<div className="page" {...swipeHandlers}>
+  {page === "today" && <TodayPage />}
+  {page === "progress" && <ProgressPage />}
+  {page === "compare" && <ComparePage />}
+  {page === "leaderboard" && <LeaderboardPage />}
+</div>
+
 
 
       </div>
 
       {/* BOTTOM NAV */}
-      <div style={{
-        display: "flex",
-        justifyContent: "space-around",
-        padding: "12px 0",
-        borderTop: "1px solid #eee",
-        background: "#fff"
-      }}>
-        <NavItem icon="🏆" label ="Rank" active={page==="leaderboard"} onClick={()=>setPage("leaderboard")} />
-        <NavItem icon="📈" label ="Others" active={page==="compare"} onClick={()=>setPage("compare")} />
-        <NavItem icon="✅" label ="Today" active={page==="today"} onClick={()=>setPage("today")} />
-        <NavItem icon="📊" label ="Progress" active={page==="progress"} onClick={()=>setPage("progress")} />
-      </div>
+      <div className="nav">
+
+<div 
+  className={`nav-item ${page==="leaderboard" ? "active" : ""}`}
+  onClick={()=>setPage("leaderboard")}
+>
+  <span>🏆</span>
+  Rank
+</div>
+
+<div 
+  className={`nav-item ${page==="compare" ? "active" : ""}`}
+  onClick={()=>setPage("compare")}
+>
+  <span>📈</span>
+  Others
+</div>
+
+<div 
+  className={`nav-item ${page==="today" ? "active" : ""}`}
+  onClick={()=>setPage("today")}
+>
+  <span>✅</span>
+  Today
+</div>
+
+<div 
+  className={`nav-item ${page==="progress" ? "active" : ""}`}
+  onClick={()=>setPage("progress")}
+>
+  <span>📊</span>
+  Progress
+</div>
+
+</div>
+
 
     </div>
   )

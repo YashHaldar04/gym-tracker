@@ -1,4 +1,4 @@
-/* Reset */
+/* ---------- GLOBAL RESET ---------- */
 
 * {
   box-sizing: border-box;
@@ -6,11 +6,8 @@
 }
 
 html, body {
-  width: 100%;
-  height: 100%;
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
 }
 
 body {
@@ -18,53 +15,44 @@ body {
   background: linear-gradient(
     180deg,
     #ffffff 0%,
-    #f7f8ff 40%,
+    #f6f7ff 45%,
     #ffffff 100%
   );
   color: #111;
 }
 
-/* Root */
+/* ---------- APP LAYOUT ---------- */
 
 #root {
-  width: 100%;
-  height: 100%;
+  display: flex;
+  justify-content: center;
 }
-
-:root {
-  --safe-bottom: env(safe-area-inset-bottom);
-  --safe-top: env(safe-area-inset-top);
-}
-
-/* Main app container */
 
 .app {
   width: 100%;
   max-width: 480px;
-  height: 100dvh;   /* IMPORTANT */
-  margin: 0 auto;
+  min-height: 100vh;
+  background: #fff;
   display: flex;
   flex-direction: column;
-  background: #fff;
 }
 
-/* Page area */
+/* Page */
 
 .page {
-  flex: 1;
-  overflow-y: auto;
   padding: 16px;
-  padding-bottom: calc(100px + var(--safe-bottom));
+  padding-bottom: 160px; /* space for floating nav */
+  animation: fadeSlide 0.25s ease;
 }
 
-/* Cards */
+/* ---------- CARDS ---------- */
 
 .card {
   border-radius: 24px;
   background: #ffffff;
   box-shadow: 
-    0 12px 28px rgba(0,0,0,0.06),
-    0 4px 10px rgba(0,0,0,0.04);
+    0 14px 32px rgba(0,0,0,0.06),
+    0 6px 12px rgba(0,0,0,0.04);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -72,34 +60,36 @@ body {
   transform: scale(0.98);
 }
 
-/* Buttons */
+/* ---------- BUTTONS ---------- */
 
 button {
   font-family: inherit;
   border: none;
-  background: none;
+  outline: none;
   cursor: pointer;
+  background: none;
+  transition: transform 0.15s ease;
 }
 
 button:active {
   transform: scale(0.95);
 }
 
-/* Inputs */
+/* ---------- INPUTS ---------- */
 
 input, select {
   font-family: inherit;
   padding: 10px 14px;
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1px solid #ddd;
   font-size: 14px;
 }
 
 select {
-  background: white;
+  background: #fff;
 }
 
-/* Checkbox */
+/* ---------- CHECKBOX ---------- */
 
 input[type="checkbox"] {
   width: 20px;
@@ -107,32 +97,74 @@ input[type="checkbox"] {
   cursor: pointer;
 }
 
-/* Bottom navigation */
+/* ---------- FLOATING NAV BAR ---------- */
 
 .nav {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  max-width: 480px;
-  margin: 0 auto;
+  bottom: 18px;                /* floats above browser UI */
+  left: 50%;
+  transform: translateX(-50%);
 
-  padding: 12px 0;
-  padding-bottom: calc(12px + var(--safe-bottom));
+  width: 92%;
+  max-width: 380px;
 
-  background: white;
-  border-top: 1px solid #eee;
+  background: #fff;
+  border-radius: 22px;
+
+  padding: 10px 6px;
+
   display: flex;
   justify-content: space-around;
-  z-index: 100;
+  align-items: center;
+
+  box-shadow:
+    0 16px 40px rgba(0,0,0,0.12),
+    0 6px 14px rgba(0,0,0,0.08);
+
+  z-index: 1000;
 }
 
-/* Smooth animation */
+/* Nav items */
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #777;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+/* Icon size */
+
+.nav-item span {
+  font-size: 22px;
+}
+
+/* Active tab */
+
+.nav-item.active {
+  color: #111;
+  font-weight: 600;
+}
+
+/* Active bubble */
+
+.nav-item.active span {
+  background: #111;
+  color: #fff;
+  padding: 8px;
+  border-radius: 12px;
+}
+
+/* ---------- ANIMATIONS ---------- */
 
 @keyframes fadeSlide {
   from {
     opacity: 0;
-    transform: translateY(15px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
