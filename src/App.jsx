@@ -51,7 +51,8 @@ const quotes = [
 
 function App() {
 
-  const users = ["Nishant", "Nupur", "Harsh", "Maa"]
+  const [users, setUsers] = useState([])
+
 
   const [user, setUser] = useState("")
   const [page, setPage] = useState("today")
@@ -76,6 +77,22 @@ function App() {
     preventScrollOnSwipe: true
   })
   
+  // FETCH USERS
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const { data, error } = await supabase
+        .from("users")
+        .select("name")
+  
+      if (!error && data) {
+        setUsers(data.map(u => u.name))
+      }
+    }
+  
+    fetchUsers()
+  }, [])
+  
+
   // FRONT PAGE
   if (!user) {
     return (
