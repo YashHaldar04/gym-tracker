@@ -253,7 +253,8 @@ function App() {
 function TodayPage({ user }) {
 
   const todayLabel = new Date().toLocaleDateString()
-  const todayDate = new Date().toISOString().split("T")[0]
+  const todayDate = new Date().toLocaleDateString("en-CA")
+
 
   const [habits, setHabits] = useState([])
   const [checkedMap, setCheckedMap] = useState({})
