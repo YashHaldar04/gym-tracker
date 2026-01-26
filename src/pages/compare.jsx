@@ -20,122 +20,118 @@ ChartJS.register(
   Legend
 )
 
-
 function Compare() {
-
   const [labels, setLabels] = useState([])
   const [datasets, setDatasets] = useState([])
   const [stats, setStats] = useState([])
-  const [users, setUsers] = useState([])
-
-  // Fetch users
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const { data } = await supabase
-        .from("Users")
-        .select("name")
-
-      if (data) setUsers(data.map(u => u.name))
-    }
-
-    fetchUsers()
-  }, [])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const fetchAll = async () => {
+      try {
+        setLoading(true)
 
-    const fetchCompare = async () => {
+        // Fetch users
+        const { data: userData } = await supabase
+          .from("Users")
+          .select("name")
 
-      // last 7 days
-      const days = []
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date()
-        d.setDate(d.getDate() - i)
-        days.push(d.toISOString().split("T")[0])
-      }
+        if (!userData || userData.length === 0) {
+          setLoading(false)
+          return
+        }
 
-      setLabels(days.map(d => d.slice(5)))
+        const users = userData.map(u => u.name)
 
-      const allStats = []
-      const chartSets = []
+        // Generate last 7 days labels
+        const days = []
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date()
+          d.setDate(d.getDate() - i)
+          days.push(d.toISOString().split("T")[0])
+        }
 
-      for (let user of users) {
+        setLabels(days.map(d => d.slice(5)))
 
-        const { data } = await supabase
-          .from("daily_logs")
-          .select("*")
-          .eq("user_name", user)
-          .in("date", days)
-
-        const grouped = {}
-        days.forEach(d => grouped[d] = [])
-
-        data?.forEach(l => grouped[l.date].push(l))
-
-        // Raw daily percentages
-const dailyPercents = days.map(d => {
-    const logs = grouped[d]
-    if (!logs.length) return null   // skip empty days
-    const done = logs.filter(l => l.completed).length
-    return (done / logs.length) * 100
-  }).filter(v => v !== null)
-  
-  // Consistency trend (running average)
-  const trend = dailyPercents.map((_, i) => {
-    const slice = dailyPercents.slice(0, i + 1)
-    const avg = slice.reduce((a, b) => a + b, 0) / slice.length
-    return Math.round(avg)
-  })
-  
-
+        const allStats = []
+        const chartSets = []
         const colors = {
-            Nishant: "#3b82f6", // blue
-            Nupur: "#8b5cf6",   // purple
-            Harsh: "#22c55e",   // green
-            Maa: "#f97316"     // orange
-          }
-          
+          Nishant: "#3b82f6", // blue
+          Nupur: "#8b5cf6",   // purple
+          Harsh: "#22c55e",   // green
+          Maa: "#f97316",     // orange
+          default: "#6b7280"  // gray fallback
+        }
+
+        for (let user of users) {
+          const { data } = await supabase
+            .from("daily_logs")
+            .select("*")
+            .eq("user_name", user)
+            .in("date", days)
+
+          const grouped = {}
+          days.forEach(d => grouped[d] = [])
+
+          data?.forEach(l => {
+            grouped[l.date]?.push(l)
+          })
+
+          // Daily percents including 0 for empty days
+          const dailyPercents = days.map(d => {
+            const logs = grouped[d]
+            if (!logs || logs.length === 0) return 0
+            const done = logs.filter(l => l.completed).length
+            return Math.round((done / logs.length) * 100)
+          })
+
+          // Running average trend
+          const trend = dailyPercents.map((percent, i) => {
+            const slice = dailyPercents.slice(0, i + 1)
+            const avg = slice.reduce((a, b) => a + b, 0) / slice.length
+            return Math.round(avg)
+          })
+
           chartSets.push({
             label: user,
             data: trend,
             tension: 0.4,
             borderWidth: 2,
-            borderColor: colors[user],
-            backgroundColor: colors[user]
+            borderColor: colors[user] || colors.default,
+            backgroundColor: (colors[user] || colors.default) + "20"
           })
-          
 
-        // ---- STATS ----
-        const validDays = dailyPercents.filter(p => p > 0)
+          // Stats using all days (including 0%)
+          const avg = Math.round(dailyPercents.reduce((a, b) => a + b, 0) / dailyPercents.length)
+          const best = Math.max(...dailyPercents)
+          // Streak: consecutive 100% from end
+          let streak = 0
+          for (let i = dailyPercents.length - 1; i >= 0; i--) {
+            if (dailyPercents[i] === 100) streak++
+            else break
+          }
 
-        const avg = validDays.length
-          ? Math.round(validDays.reduce((a,b)=>a+b,0)/validDays.length)
-          : 0
-
-        const best = dailyPercents.length
-          ? Math.max(...dailyPercents)
-          : 0
-
-        // streak
-        let streak = 0
-        for (let i = dailyPercents.length - 1; i >= 0; i--) {
-          if (dailyPercents[i] === 100) streak++
-          else break
+          allStats.push({ user, avg, best, streak })
         }
 
-        allStats.push({ user, avg, best, streak })
+        setDatasets(chartSets)
+        setStats(allStats)
+      } catch (error) {
+        console.error("Error fetching data:", error)
+      } finally {
+        setLoading(false)
       }
-
-      setDatasets(chartSets)
-      setStats(allStats)
     }
 
-    fetchCompare()
-
+    fetchAll()
   }, [])
+
+  if (loading) {
+    return <div className="card" style={{ textAlign: "center", padding: 20 }}>Loading comparison...</div>
+  }
 
   return (
     <div>
-
       <h3 style={{ marginBottom: 12 }}>Compare Progress</h3>
 
       {/* MAIN GRAPH */}
@@ -148,8 +144,16 @@ const dailyPercents = days.map(d => {
               easing: "easeOutQuart"
             },
             scales: {
-              y: { min: 0, max: 100 }
-            }
+              y: { 
+                min: 0, 
+                max: 100,
+                ticks: {
+                  stepSize: 20
+                }
+              }
+            },
+            responsive: true,
+            maintainAspectRatio: false
           }}
         />
       </div>
@@ -157,11 +161,10 @@ const dailyPercents = days.map(d => {
       {/* STATS GRID */}
       <div style={{
         display: "grid",
-        gridTemplateColumns: "1fr 1fr",
+        gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
         gap: 10,
         marginTop: 12
       }}>
-
         {stats.map(s => (
           <div key={s.user} className="card" style={{ textAlign: "center" }}>
             <strong>{s.user}</strong>
@@ -170,9 +173,7 @@ const dailyPercents = days.map(d => {
             <p style={{ fontSize: 12 }}>🔥 {s.streak} day streak</p>
           </div>
         ))}
-
       </div>
-
     </div>
   )
 }
