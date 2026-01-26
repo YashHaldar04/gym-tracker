@@ -20,12 +20,13 @@ ChartJS.register(
   Legend
 )
 
+
 function Compare() {
 
-  const [users, setUsers] = useState([])
   const [labels, setLabels] = useState([])
   const [datasets, setDatasets] = useState([])
   const [stats, setStats] = useState([])
+  const [users, setUsers] = useState([])
 
   // Fetch users
   useEffect(() => {
@@ -40,13 +41,11 @@ function Compare() {
     fetchUsers()
   }, [])
 
-  // Fetch graph AFTER users load
   useEffect(() => {
-
-    if (!users.length) return
 
     const fetchCompare = async () => {
 
+      // last 7 days
       const days = []
       for (let i = 6; i >= 0; i--) {
         const d = new Date()
@@ -59,19 +58,7 @@ function Compare() {
       const allStats = []
       const chartSets = []
 
-      const colors = [
-        "#3b82f6",
-        "#8b5cf6",
-        "#22c55e",
-        "#f97316",
-        "#ef4444",
-        "#14b8a6",
-        "#facc15"
-      ]
-
-      for (let i = 0; i < users.length; i++) {
-
-        const user = users[i]
+      for (let user of users) {
 
         const { data } = await supabase
           .from("daily_logs")
@@ -84,35 +71,51 @@ function Compare() {
 
         data?.forEach(l => grouped[l.date].push(l))
 
-        const dailyPercents = days.map(d => {
-          const logs = grouped[d]
-          if (!logs.length) return null
-          const done = logs.filter(l => l.completed).length
-          return (done / logs.length) * 100
-        }).filter(v => v !== null)
+        // Raw daily percentages
+const dailyPercents = days.map(d => {
+    const logs = grouped[d]
+    if (!logs.length) return null   // skip empty days
+    const done = logs.filter(l => l.completed).length
+    return (done / logs.length) * 100
+  }).filter(v => v !== null)
+  
+  // Consistency trend (running average)
+  const trend = dailyPercents.map((_, i) => {
+    const slice = dailyPercents.slice(0, i + 1)
+    const avg = slice.reduce((a, b) => a + b, 0) / slice.length
+    return Math.round(avg)
+  })
+  
 
-        const trend = dailyPercents.map((_, i) => {
-          const slice = dailyPercents.slice(0, i + 1)
-          const avg = slice.reduce((a,b)=>a+b,0) / slice.length
-          return Math.round(avg)
-        })
+        const colors = {
+            Nishant: "#3b82f6", // blue
+            Nupur: "#8b5cf6",   // purple
+            Harsh: "#22c55e",   // green
+            Maa: "#f97316"     // orange
+          }
+          
+          chartSets.push({
+            label: user,
+            data: trend,
+            tension: 0.4,
+            borderWidth: 2,
+            borderColor: colors[user],
+            backgroundColor: colors[user]
+          })
+          
 
-        chartSets.push({
-          label: user,
-          data: trend,
-          tension: 0.4,
-          borderWidth: 2,
-          borderColor: colors[i % colors.length]
-        })
+        // ---- STATS ----
+        const validDays = dailyPercents.filter(p => p > 0)
 
-        const avg = dailyPercents.length
-          ? Math.round(dailyPercents.reduce((a,b)=>a+b,0)/dailyPercents.length)
+        const avg = validDays.length
+          ? Math.round(validDays.reduce((a,b)=>a+b,0)/validDays.length)
           : 0
 
         const best = dailyPercents.length
           ? Math.max(...dailyPercents)
           : 0
 
+        // streak
         let streak = 0
         for (let i = dailyPercents.length - 1; i >= 0; i--) {
           if (dailyPercents[i] === 100) streak++
@@ -128,23 +131,30 @@ function Compare() {
 
     fetchCompare()
 
-  }, [users])
+  }, [])
 
   return (
     <div>
 
       <h3 style={{ marginBottom: 12 }}>Compare Progress</h3>
 
+      {/* MAIN GRAPH */}
       <div className="card">
         <Line
           data={{ labels, datasets }}
           options={{
-            animation: { duration: 800 },
-            scales: { y: { min: 0, max: 100 } }
+            animation: {
+              duration: 800,
+              easing: "easeOutQuart"
+            },
+            scales: {
+              y: { min: 0, max: 100 }
+            }
           }}
         />
       </div>
 
+      {/* STATS GRID */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
