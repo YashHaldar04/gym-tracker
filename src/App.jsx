@@ -177,9 +177,10 @@ function App() {
     marginBottom: 10
   }}>
 
-    <h3 style={{ margin: 0, fontWeight: 600 }}>
-      Daily Tracker
-    </h3>
+<h3 style={{ margin: 0, fontWeight: 600 }}>
+  Hi, {user} 👋
+</h3>
+
 
     <button
       onClick={() => setUser("")}
