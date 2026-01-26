@@ -104,10 +104,11 @@ function Compare() {
           // Stats using all days (including 0%)
           const avg = Math.round(dailyPercents.reduce((a, b) => a + b, 0) / dailyPercents.length)
           const best = Math.max(...dailyPercents)
+          
           // Streak: consecutive 100% from end
           let streak = 0
           for (let i = dailyPercents.length - 1; i >= 0; i--) {
-            if (dailyPercents[i] === 100) streak++
+            if (dailyPercents[i] > 0) streak++
             else break
           }
 

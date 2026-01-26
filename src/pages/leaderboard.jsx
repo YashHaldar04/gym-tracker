@@ -55,12 +55,14 @@ function Leaderboard() {
           const percent = Math.round(avg * 100)
 
           // Streak: consecutive perfect days from latest
-          const dates = Object.keys(grouped).sort((a, b) => b.localeCompare(a)) // newest first
+          const dates = Object.keys(grouped).sort((a, b) => b.localeCompare(a))
           let streak = 0
           for (let date of dates) {
             const day = grouped[date]
-            const perfect = day.every(l => l.completed)
-            if (perfect) streak++
+            const total = day.length
+            const done = day.filter(l => l.completed).length
+            const percent = total === 0 ? 0 : (done / total) * 100
+            if (percent > 0) streak++
             else break
           }
 
