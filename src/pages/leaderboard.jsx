@@ -4,7 +4,9 @@ import { supabase } from "../supabase"
 function Leaderboard() {
 
   const [users, setUsers] = useState([])
+  const [rows, setRows] = useState([])
 
+  // Fetch users
   useEffect(() => {
     const fetchUsers = async () => {
       const { data } = await supabase
@@ -17,10 +19,10 @@ function Leaderboard() {
     fetchUsers()
   }, [])
 
-
-  const [rows, setRows] = useState([])
-
+  // Fetch leaderboard AFTER users load
   useEffect(() => {
+
+    if (!users.length) return
 
     const fetchLeaderboard = async () => {
 
@@ -38,7 +40,6 @@ function Leaderboard() {
           continue
         }
 
-        // ---- GROUP BY DATE ----
         const grouped = {}
 
         data.forEach(log => {
@@ -46,27 +47,21 @@ function Leaderboard() {
           grouped[log.date].push(log)
         })
 
-        const dailyPercents = []
-
-        Object.values(grouped).forEach(dayLogs => {
+        const dailyPercents = Object.values(grouped).map(dayLogs => {
           const total = dayLogs.length
           const done = dayLogs.filter(l => l.completed).length
-          dailyPercents.push(done / total)
+          return done / total
         })
 
-        const avg =
-          dailyPercents.reduce((a,b)=>a+b,0) / dailyPercents.length
-
+        const avg = dailyPercents.reduce((a,b)=>a+b,0) / dailyPercents.length
         const percent = Math.round(avg * 100)
 
-        // ---- STREAK (100% days only) ----
         const dates = Object.keys(grouped).sort()
         let streak = 0
 
         for (let i = dates.length - 1; i >= 0; i--) {
           const day = grouped[dates[i]]
-          const perfect = day.every(l => l.completed)
-          if (perfect) streak++
+          if (day.every(l => l.completed)) streak++
           else break
         }
 
@@ -80,7 +75,7 @@ function Leaderboard() {
 
     fetchLeaderboard()
 
-  }, [])
+  }, [users])
 
   return (
     <div>
