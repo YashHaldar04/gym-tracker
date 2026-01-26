@@ -81,7 +81,7 @@ function App() {
   useEffect(() => {
     const fetchUsers = async () => {
       const { data, error } = await supabase
-        .from("users")
+        .from("Users")
         .select("name")
   
       if (!error && data) {
