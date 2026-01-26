@@ -204,7 +204,8 @@ function App() {
   {page === "progress" && <ProgressPage user={user} />}
   {page === "compare" && <Compare user={user} />}
   {page === "leaderboard" && <Leaderboard user={user} />}
-
+  
+  <div style={{ height: 120 }} />
 </div>
 
 
