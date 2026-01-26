@@ -9,7 +9,7 @@ function Leaderboard() {
   useEffect(() => {
     const fetchUsers = async () => {
       const { data } = await supabase
-        .from("users")
+        .from("Users")
         .select("name")
 
       if (data) setUsers(data.map(u => u.name))
