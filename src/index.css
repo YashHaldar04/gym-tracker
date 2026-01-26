@@ -41,7 +41,7 @@ body {
 
 .page {
   padding: 16px;
-  padding-bottom: 260px; /* space for floating nav */
+  padding-bottom: 460px; /* space for floating nav */
   animation: fadeSlide 0.25s ease;
 }
 
