@@ -62,7 +62,7 @@ function Leaderboard() {
             const total = day.length
             const done = day.filter(l => l.completed).length
             const percent = total === 0 ? 0 : (done / total) * 100
-            if (percent > 0) streak++
+            if (percent > 40) streak++
             else break
           }
 

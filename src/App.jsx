@@ -526,7 +526,7 @@ function ProgressPage({ user }) {
       // STREAK
       let s = 0
       for (let i = percentArr.length - 1; i >= 0; i--) {
-        if (percentArr[i] > 0) s++
+        if (percentArr[i] > 40) s++
         else break
       }
       setStreak(s)
