@@ -41,7 +41,7 @@ body {
 
 .page {
   padding: 16px;
-  padding-bottom: 160px; /* space for floating nav */
+  padding-bottom: calc(160px + env(safe-area-inset-bottom)); /* space for floating nav */
   animation: fadeSlide 0.25s ease;
 }
 
