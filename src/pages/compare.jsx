@@ -55,13 +55,17 @@ function Compare() {
 
         const allStats = []
         const chartSets = []
-        const colors = {
-          Nishant: "#3b82f6", // blue
-          Nupur: "#8b5cf6",   // purple
-          Harsh: "#22c55e",   // green
-          Maa: "#f97316",     // orange
-          default: "#6b7280"  // gray fallback
-        }
+        const palette = [
+          "#3b82f6", // blue
+          "#8b5cf6", // purple
+          "#22c55e", // green
+          "#f97316", // orange
+          "#ec4899", // pink
+          "#14b8a6", // teal
+          "#eab308", // yellow
+          "#6366f1"  // indigo
+        ]
+        
 
         for (let user of users) {
           const { data } = await supabase
@@ -92,14 +96,17 @@ function Compare() {
             return Math.round(avg)
           })
 
+          const color = palette[chartSets.length % palette.length]
+
           chartSets.push({
             label: user,
             data: trend,
             tension: 0.4,
             borderWidth: 2,
-            borderColor: colors[user] || colors.default,
-            backgroundColor: (colors[user] || colors.default) + "20"
+            borderColor: color,
+            backgroundColor: color + "20"
           })
+          
 
           // Stats using all days (including 0%)
           const avg = Math.round(dailyPercents.reduce((a, b) => a + b, 0) / dailyPercents.length)
