@@ -3,7 +3,20 @@ import { supabase } from "../supabase"
 
 function Leaderboard() {
 
-  const users = ["Nishant", "Nupur", "Harsh", "Maa"]
+  const [users, setUsers] = useState([])
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const { data } = await supabase
+        .from("users")
+        .select("name")
+
+      if (data) setUsers(data.map(u => u.name))
+    }
+
+    fetchUsers()
+  }, [])
+
 
   const [rows, setRows] = useState([])
 
