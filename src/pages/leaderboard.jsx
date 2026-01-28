@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { supabase } from "../supabase"
 import {
   calculateDailyPercent,
-} from "/Users/nishant__1009/Desktop/Gym-Tracker/src/utils/calculations.js"
+} from "/src/utils/calculations.js"
 
 function Leaderboard() {
   const [rows, setRows] = useState([])

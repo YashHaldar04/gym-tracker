@@ -15,7 +15,7 @@ import {
   calculateDailyPercent,
   getWeeklyAverage,
   getBestDay
-} from "/Users/nishant__1009/Desktop/Gym-Tracker/src/utils/calculations.js"
+} from "/src/utils/calculations.js"
 
 ChartJS.register(
   LineElement,
