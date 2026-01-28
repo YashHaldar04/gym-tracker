@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../supabase"
+import {
+  calculateDailyPercent,
+} from "/Users/nishant__1009/Desktop/Gym-Tracker/src/utils/calculations.js"
 
 function Leaderboard() {
   const [rows, setRows] = useState([])
@@ -10,10 +13,10 @@ function Leaderboard() {
       try {
         setLoading(true)
 
-        // Fetch users first
+        // Fetch all users with their long-term stats
         const { data: userData } = await supabase
           .from("Users")
-          .select("name")
+          .select("name, streak")
 
         if (!userData || userData.length === 0) {
           setRows([])
@@ -24,7 +27,9 @@ function Leaderboard() {
         const users = userData.map(u => u.name)
         const results = []
 
+        // Process each user
         for (let user of users) {
+          // Fetch ALL daily logs for this user (all-time)
           const { data } = await supabase
             .from("daily_logs")
             .select("*")
@@ -42,31 +47,21 @@ function Leaderboard() {
             grouped[log.date].push(log)
           })
 
-          const dailyPercents = Object.values(grouped).map(dayLogs => {
-            const total = dayLogs.length
-            const done = dayLogs.filter(l => l.completed).length
-            return done / total
-          })
+          // Calculate daily percentages using helper
+          const dailyPercents = Object.values(grouped).map(dayLogs =>
+            calculateDailyPercent(dayLogs) / 100 // Convert to decimal for averaging
+          )
 
-          // Safe average
-          const avg = dailyPercents.length 
-            ? dailyPercents.reduce((a, b) => a + b, 0) / dailyPercents.length 
+          // Calculate long-term average using helper
+          const avg = dailyPercents.length
+            ? dailyPercents.reduce((a, b) => a + b, 0) / dailyPercents.length
             : 0
           const percent = Math.round(avg * 100)
 
-          // Streak: consecutive perfect days from latest
-          const dates = Object.keys(grouped).sort((a, b) => b.localeCompare(a))
-          let streak = 0
-          for (let date of dates) {
-            const day = grouped[date]
-            const total = day.length
-            const done = day.filter(l => l.completed).length
-            const percent = total === 0 ? 0 : (done / total) * 100
-            if (percent > 40) streak++
-            else break
-          }
+          // Fetch streak from Users table (DB source of truth)
+          const userStreak = userData.find(u => u.name === user)?.streak || 0
 
-          results.push({ user, percent, streak })
+          results.push({ user, percent, streak: userStreak })
         }
 
         // Sort: percent desc, then streak desc
@@ -85,18 +80,26 @@ function Leaderboard() {
   }, [])
 
   if (loading) {
-    return <div className="card" style={{ textAlign: "center", padding: 20 }}>Loading leaderboard...</div>
+    return (
+      <div className="card" style={{ textAlign: "center", padding: 20 }}>
+        Loading leaderboard...
+      </div>
+    )
   }
 
   if (rows.length === 0) {
-    return <div className="card" style={{ textAlign: "center", padding: 20 }}>No users found</div>
+    return (
+      <div className="card" style={{ textAlign: "center", padding: 20 }}>
+        No users found
+      </div>
+    )
   }
 
   return (
     <div>
       <h3 style={{ marginBottom: 12 }}>Leaderboard</h3>
       {rows.map((r, i) => (
-        <div 
+        <div
           key={r.user}
           className="card"
           style={{
@@ -116,6 +119,26 @@ function Leaderboard() {
           </div>
         </div>
       ))}
+      <p
+        style={{
+          fontSize: 12,
+          color: "#777",
+          textAlign: "center",
+          marginTop: 30
+        }}
+      >
+        Leaderboard is calculated based on consistency and not streak. </p>
+      <p
+        style={{
+          fontSize: 12,
+          color: "#777",
+          textAlign: "center",
+          marginTop: 1
+        }}
+      >
+        So Keep Going !!
+      </p>
+
     </div>
   )
 }

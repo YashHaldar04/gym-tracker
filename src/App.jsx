@@ -3,6 +3,7 @@ import Leaderboard from "/src/pages/leaderboard"
 import Compare from "/src/pages/compare"
 import { supabase } from "./supabase"
 import { useSwipeable } from "react-swipeable"
+import './opening.css'
 import { Line } from "react-chartjs-2"
 import {
   Chart as ChartJS,
@@ -13,6 +14,16 @@ import {
   Tooltip,
   Legend
 } from "chart.js"
+import {
+  getToday,
+  getLastDays,
+  calculateDailyPercent,
+  getWeeklyAverage,
+  getBestDay,
+  shouldCountDay,
+  updateUserStreak,
+  getHabitStats
+} from "/Users/nishant__1009/Desktop/Gym-Tracker/src/utils/calculations.js"
 
 ChartJS.register(
   LineElement,
@@ -29,13 +40,13 @@ const quotes = [
   "Your future self will thank you.",
   "Discipline is choosing what you want most.",
   "Progress, not perfection.",
-  "Show up even when you don’t feel like it.",
+  "Show up even when you don't feel like it.",
   "Focus on what you can control.",
   "Action creates momentum.",
   "Success is built one habit at a time.",
   "Do it tired. Do it scared. Just do it.",
   "The work you avoid is the work that matters.",
-  "You don’t need motivation, you need commitment.",
+  "You don't need motivation, you need commitment.",
   "Growth begins outside your comfort zone.",
   "Daily effort compounds over time.",
   "Excuses delay results.",
@@ -46,22 +57,17 @@ const quotes = [
   "One workout at a time.",
   "Stay consistent. Stay winning.",
   "Habits build success.",
-  "Do it even when you don’t feel like it."
+  "Do it even when you don't feel like it."
 ]
 
 function App() {
-
   const [users, setUsers] = useState([])
-
-
   const [user, setUser] = useState("")
   const [page, setPage] = useState("today")
-
   const [quote] = useState(
     quotes[Math.floor(Math.random() * quotes.length)]
-    
   )
-  
+
   const pages = ["leaderboard", "compare", "today", "progress"]
 
   const swipeHandlers = useSwipeable({
@@ -76,187 +82,124 @@ function App() {
     trackTouch: true,
     preventScrollOnSwipe: true
   })
-  
+
   // FETCH USERS
   useEffect(() => {
     const fetchUsers = async () => {
       const { data, error } = await supabase
         .from("Users")
         .select("name")
-  
+
       if (!error && data) {
         setUsers(data.map(u => u.name))
       }
     }
-  
+
     fetchUsers()
   }, [])
-  
 
   // FRONT PAGE
   if (!user) {
     return (
-      <div
-        style={{
-          height: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          padding: 20,
-          textAlign: "center",
-          background: "linear-gradient(180deg, #ffffff 0%, #f5f7ff 100%)"
-        }}
-      >
-  
-        {/* Logo / App name */}
-  
-          <h1 style={{
-            margin: 0,
-            fontSize: 36,
-            fontWeight: 700
-          }}>
-            Gym Habit Tracker
-          </h1>
-  
-          <p style={{
-  marginTop: 10,
-  fontSize: 14,
-  color: "#555",
-  fontStyle: "italic"
-}}>
-  {quote}
-</p>
+      <div className="splash-container">
+        <h1 className="splash-title">Gym Habit Tracker</h1>
+        <p className="splash-quote">{quote}</p>
 
-  
-        {/* Profile Select */}
-        <select
-          onChange={e => setUser(e.target.value)}
-          style={{
-            width: "80%",
-            maxWidth: 260,
-            padding: "14px 18px",
-            borderRadius: 18,
-            border: "1px solid #ddd",
-            fontSize: 15,
-            boxShadow: "0 8px 18px rgba(0,0,0,0.06)",
-            background: "#fff"
-          }}
-        >
-          <option value="">Select Profile</option>
-          {users.map(u => (
-            <option key={u}>{u}</option>
-          ))}
-        </select>
-  
-        {/* Footer */}
-        <p style={{
-          position: "absolute",
-          bottom: 14,
-          fontSize: 12,
-          color: "#888"
-        }}>
-          Made by Nishant
-        </p>
-  
+        <div className="splash-selector">
+          <select onChange={e => setUser(e.target.value)}>
+            <option value="">Select Profile</option>
+            {users.map(u => (
+              <option key={u}>{u}</option>
+            ))}
+          </select>
+        </div>
+
+        <p className="splash-footer">Made by Nishant</p>
       </div>
     )
   }
-  
 
   return (
     <div className="app">
+      <div className="page" {...swipeHandlers}>
+        {/* HEADER */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 10
+          }}
+        >
+          <h3 style={{ margin: 0, fontWeight: 600 }}>Hi, {user} 😉</h3>
 
-<div className="page" {...swipeHandlers}>
+          <button
+            onClick={() => setUser("")}
+            style={{
+              background: "#fff",
+              color: "#111",
+              border: "2px solid #111",
+              borderRadius: 999,
+              padding: "8px 18px",
+              fontSize: 13,
+              fontWeight: 500,
+              boxShadow: "0 6px 14px rgba(0,0,0,0.08)"
+            }}
+          >
+            Exit Profile
+          </button>
+        </div>
 
-  {/* HEADER */}
-  <div style={{
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10
-  }}>
+        {page === "today" && <TodayPage user={user} />}
+        {page === "progress" && <ProgressPage user={user} />}
+        {page === "compare" && <Compare user={user} />}
+        {page === "leaderboard" && <Leaderboard user={user} />}
 
-<h3 style={{ margin: 0, fontWeight: 600 }}>
-  Hi, {user} 👋
-</h3>
-
-
-    <button
-      onClick={() => setUser("")}
-      style={{
-        background: "#fff",
-        color: "#111",
-        border: "2px solid #111",
-        borderRadius: 999,
-        padding: "8px 18px",
-        fontSize: 13,
-        fontWeight: 500,
-        boxShadow: "0 6px 14px rgba(0,0,0,0.08)"
-      }}
-    >
-      Exit Profile
-    </button>
-
-  </div>
-
-  {page === "today" && <TodayPage user={user} />}
-  {page === "progress" && <ProgressPage user={user} />}
-  {page === "compare" && <Compare user={user} />}
-  {page === "leaderboard" && <Leaderboard user={user} />}
-  
-  <div style={{ height: 120 }} />
-</div>
-
+        <div style={{ height: 120 }} />
+      </div>
 
       {/* BOTTOM NAV */}
       <div className="nav">
+        <div
+          className={`nav-item ${page === "leaderboard" ? "active" : ""}`}
+          onClick={() => setPage("leaderboard")}
+        >
+          <span>🏆</span>
+          Rank
+        </div>
 
-<div 
-  className={`nav-item ${page==="leaderboard" ? "active" : ""}`}
-  onClick={()=>setPage("leaderboard")}
->
-  <span>🏆</span>
-  Rank
-</div>
+        <div
+          className={`nav-item ${page === "compare" ? "active" : ""}`}
+          onClick={() => setPage("compare")}
+        >
+          <span>📈</span>
+          Others
+        </div>
 
-<div 
-  className={`nav-item ${page==="compare" ? "active" : ""}`}
-  onClick={()=>setPage("compare")}
->
-  <span>📈</span>
-  Others
-</div>
+        <div
+          className={`nav-item ${page === "today" ? "active" : ""}`}
+          onClick={() => setPage("today")}
+        >
+          <span>✅</span>
+          Today
+        </div>
 
-<div 
-  className={`nav-item ${page==="today" ? "active" : ""}`}
-  onClick={()=>setPage("today")}
->
-  <span>✅</span>
-  Today
-</div>
-
-<div 
-  className={`nav-item ${page==="progress" ? "active" : ""}`}
-  onClick={()=>setPage("progress")}
->
-  <span>📊</span>
-  Progress
-</div>
-
-</div>
-
-
+        <div
+          className={`nav-item ${page === "progress" ? "active" : ""}`}
+          onClick={() => setPage("progress")}
+        >
+          <span>📊</span>
+          Progress
+        </div>
+      </div>
     </div>
   )
 }
 
-/* ================= TODAY ================= */
+/* ================= TODAY PAGE ================= */
 function TodayPage({ user }) {
-
   const todayLabel = new Date().toLocaleDateString()
-  const todayDate = new Date().toLocaleDateString("en-CA")
-
+  const todayDate = getToday()
 
   const [habits, setHabits] = useState([])
   const [checkedMap, setCheckedMap] = useState({})
@@ -264,11 +207,9 @@ function TodayPage({ user }) {
   const [newHabit, setNewHabit] = useState("")
   const [loadingHabits, setLoadingHabits] = useState(true)
 
-  // FETCH HABITS SAFELY
+  // FETCH HABITS
   useEffect(() => {
-
     const fetchHabits = async () => {
-
       setLoadingHabits(true)
 
       const { data, error } = await supabase
@@ -284,16 +225,13 @@ function TodayPage({ user }) {
     }
 
     fetchHabits()
-
   }, [user])
 
   // FETCH TODAY CHECKS
   useEffect(() => {
-
-    if(loadingHabits) return
+    if (loadingHabits) return
 
     const fetchLogs = async () => {
-
       const { data } = await supabase
         .from("daily_logs")
         .select("habit, completed")
@@ -301,17 +239,22 @@ function TodayPage({ user }) {
         .eq("date", todayDate)
 
       const map = {}
-      data?.forEach(r => map[r.habit] = r.completed)
+      data?.forEach(r => (map[r.habit] = r.completed))
 
       setCheckedMap(map)
     }
 
     fetchLogs()
+  }, [user, habits, loadingHabits, todayDate])
 
-  }, [user, habits, loadingHabits])
+  // UPDATE USER STREAK (once per session)
+  useEffect(() => {
+    if (user) {
+      updateUserStreak(user)
+    }
+  }, [user])
 
   const toggleHabit = async (habit, checked) => {
-
     const { data } = await supabase
       .from("daily_logs")
       .select("*")
@@ -321,7 +264,8 @@ function TodayPage({ user }) {
       .single()
 
     if (data) {
-      await supabase.from("daily_logs")
+      await supabase
+        .from("daily_logs")
         .update({ completed: checked })
         .eq("id", data.id)
     } else {
@@ -334,41 +278,57 @@ function TodayPage({ user }) {
     }
   }
 
-  // LOADING GUARD
+  const deleteHabit = async (habit) => {
+    if (!window.confirm("Delete habit and all its data permanently?"))
+      return
+
+    await supabase
+      .from("habits")
+      .delete()
+      .eq("user_name", user)
+      .eq("habit", habit)
+
+    await supabase
+      .from("daily_logs")
+      .delete()
+      .eq("user_name", user)
+      .eq("habit", habit)
+
+    setHabits(habits.filter(h => h !== habit))
+  }
+
   if (loadingHabits) {
     return <p style={{ textAlign: "center" }}>Loading habits...</p>
   }
 
   return (
     <div>
-
       {/* HEADER */}
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        marginBottom: 12
-      }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: 12
+        }}
+      >
         <h4>{todayLabel}</h4>
         <button onClick={() => setShowModal(true)}>+</button>
       </div>
 
-      {/* HABITS */}
+      {/* HABITS LIST */}
       {habits.map(habit => (
-        <div className="card" style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "14px 18px",
-          gap: 20
-        }}>
-        
-        <span style={{
-  fontSize: 14,
-  flex: 1
-}}>
-  {habit}
-</span>
-
+        <div
+          key={habit}
+          className="card"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "14px 18px",
+            gap: 14
+          }}
+        >
+          <span style={{ flex: 1, fontSize: 14 }}>{habit}</span>
 
           <input
             type="checkbox"
@@ -379,72 +339,59 @@ function TodayPage({ user }) {
               toggleHabit(habit, val)
             }}
           />
+
+          <span
+            style={{ cursor: "pointer", fontSize: 16 }}
+            onClick={() => deleteHabit(habit)}
+          >
+            🗑️
+          </span>
         </div>
       ))}
 
-      <p style={{
-        fontSize: 12,
-        color: "#777",
-        textAlign: "center",
-        marginTop: 20
-      }}>
+      <p
+        style={{
+          fontSize: 12,
+          color: "#777",
+          textAlign: "center",
+          marginTop: 20
+        }}
+      >
         Progress auto-saves at end of day
       </p>
-      <p></p>
-      <p style={{
-        fontSize: 12,
-        color: "#777",
-        textAlign: "center",
-        marginTop: 20
-      }}>
-        To add or delete habits, click the "+" button above.
-        This will not affect your previous logs. 
-        Your progress history will remain intact.
+
+      <p
+        style={{
+          fontSize: 12,
+          color: "#777",
+          textAlign: "center",
+          marginTop: 10
+        }}
+      >
+        Use + to add habits. Use 🗑️ beside habit to delete it permanently.
       </p>
 
-      {/* MODAL */}
+      {/* ADD HABIT MODAL */}
       {showModal && (
-        <div style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(0,0,0,0.3)",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center"
-        }}>
-
-          <div style={{
-            background: "#fff",
-            padding: 20,
-            borderRadius: 16,
-            width: "80%"
-          }}>
-
-            <h4>Edit Habits</h4>
-
-            {habits.map(h => (
-              <div key={h} style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: 6
-              }}>
-                <span>{h}</span>
-
-                <span onClick={async () => {
-
-                  if(!window.confirm("Delete habit permanently?")) return
-
-                  await supabase.from("habits")
-                    .delete()
-                    .eq("user_name", user)
-                    .eq("habit", h)
-
-                  setHabits(habits.filter(x => x !== h))
-                }}>
-                  🗑️
-                </span>
-              </div>
-            ))}
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.3)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center"
+          }}
+        >
+          <div
+            style={{
+              background: "#fff",
+              padding: 20,
+              borderRadius: 16,
+              width: "80%"
+            }}
+          >
+            <h4>Add Habit</h4>
 
             <input
               placeholder="Add habit"
@@ -453,154 +400,131 @@ function TodayPage({ user }) {
             />
 
             <div style={{ marginTop: 10 }}>
-              <button onClick={async () => {
-                if(!newHabit) return
+              <button
+                onClick={async () => {
+                  if (!newHabit) return
 
-                await supabase.from("habits").insert({
-                  user_name: user,
-                  habit: newHabit
-                })
+                  await supabase.from("habits").insert({
+                    user_name: user,
+                    habit: newHabit
+                  })
 
-                setHabits([...habits, newHabit])
-                setNewHabit("")
-              }}>
+                  setHabits([...habits, newHabit])
+                  setNewHabit("")
+                  setShowModal(false)
+                }}
+              >
                 Add
               </button>
 
-              <button 
-                onClick={() => setShowModal(false)} 
+              <button
+                onClick={() => setShowModal(false)}
                 style={{ marginLeft: 10 }}
               >
                 Done
               </button>
             </div>
-
           </div>
         </div>
       )}
-
     </div>
   )
 }
 
-
-/* ================= PROGRESS ================= */
-
+/* ================= PROGRESS PAGE ================= */
 function ProgressPage({ user }) {
-
   const [labels, setLabels] = useState([])
   const [values, setValues] = useState([])
   const [streak, setStreak] = useState(0)
   const [habitStats, setHabitStats] = useState([])
 
   useEffect(() => {
-
     const fetchProgress = async () => {
+      // Get last 7 days
+      const days = getLastDays(7)
 
-      const days = []
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date()
-        d.setDate(d.getDate() - i)
-        days.push(d.toISOString().split("T")[0])
-      }
-
+      // Fetch logs for those days
       const { data } = await supabase
         .from("daily_logs")
         .select("*")
         .eq("user_name", user)
         .in("date", days)
 
-      const map = {}
-      days.forEach(d => map[d] = { total: 0, done: 0 })
+      // Group by date
+      const grouped = {}
+      days.forEach(d => (grouped[d] = []))
+      data?.forEach(l => grouped[l.date]?.push(l))
 
-      data?.forEach(row => {
-        map[row.date].total++
-        if (row.completed) map[row.date].done++
-      })
+      // Calculate daily percentages
+      const percentArr = days.map(d =>
+        calculateDailyPercent(grouped[d])
+      )
 
-      const percentArr = days.map(d => {
-        const x = map[d]
-        return x.total === 0 ? 0 : Math.round((x.done / x.total) * 100)
-      })
-
+      // Set chart data (format labels as MM-DD for display)
       setLabels(days.map(d => d.slice(5)))
       setValues(percentArr)
 
-      // STREAK
-      let s = 0
-      for (let i = percentArr.length - 1; i >= 0; i--) {
-        if (percentArr[i] > 40) s++
-        else break
-      }
-      setStreak(s)
+      // Fetch streak from Users table (single source of truth)
+      const { data: userRow } = await supabase
+        .from("Users")
+        .select("streak")
+        .eq("name", user)
+        .single()
 
-      // HABIT STATS
-      const { data: habits } = await supabase
-        .from("habits")
-        .select("habit")
-        .eq("user_name", user)
+      setStreak(userRow?.streak || 0)
 
-      const { data: allLogs } = await supabase
-        .from("daily_logs")
-        .select("*")
-        .eq("user_name", user)
-
-      const stats = habits.map(h => {
-        const related = allLogs.filter(l => l.habit === h.habit)
-        const total = related.length
-        const done = related.filter(l => l.completed).length
-        const percent = total === 0 ? 0 : Math.round((done / total) * 100)
-        return { name: h.habit, percent }
-      })
-
+      // Get habit stats
+      const stats = await getHabitStats(user)
       setHabitStats(stats)
     }
 
     fetchProgress()
-
   }, [user])
 
-  const avg = values.length
-    ? Math.round(values.reduce((a,b)=>a+b,0)/values.length)
-    : 0
+  const avg = getWeeklyAverage(values)
+  const best = getBestDay(values)
 
   return (
     <div>
-
       <h3 style={{ marginBottom: 12 }}>Progress Overview</h3>
 
       {/* MAIN CHART */}
       <div className="card">
-        <Line data={{
-          labels,
-          datasets: [{
-            label: "Daily Consistency %",
-            data: values,
-            tension: 0.4,
-            borderWidth: 2
-          }]
-        }} options={{
-          animation: {
-            duration: 800,
-            easing: "easeOutQuart"
-          },
-          scales: {
-            y: { min: 0, max: 100 }
-          }
-        }}
-         />
+        <Line
+          data={{
+            labels,
+            datasets: [
+              {
+                label: "Daily Consistency %",
+                data: values,
+                tension: 0.4,
+                borderWidth: 2
+              }
+            ]
+          }}
+          options={{
+            animation: {
+              duration: 800,
+              easing: "easeOutQuart"
+            },
+            scales: {
+              y: { min: 0, max: 100 }
+            }
+          }}
+        />
       </div>
 
       {/* STATS GRID */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: 10,
-        marginTop: 10
-      }}>
-
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 10,
+          marginTop: 10
+        }}
+      >
         <div className="card" style={{ textAlign: "center" }}>
-          <h4>{values[values.length-1] || 0}%</h4>
+          <h4>{values[values.length - 1] || 0}%</h4>
           <p style={{ fontSize: 12, color: "#666" }}>Today</p>
         </div>
 
@@ -610,21 +534,20 @@ function ProgressPage({ user }) {
         </div>
 
         <div className="card" style={{ textAlign: "center" }}>
-          <h4>{Math.max(...values,0)}%</h4>
+          <h4>{best}%</h4>
           <p style={{ fontSize: 12, color: "#666" }}>Best Day</p>
         </div>
 
         <div className="card" style={{ textAlign: "center" }}>
-          <h4>{values.filter(v=>v===100).length}</h4>
+          <h4>{values.filter(v => v === 100).length}</h4>
           <p style={{ fontSize: 12, color: "#666" }}>Perfect Days</p>
         </div>
-
       </div>
 
       {/* STREAK */}
-      <div className="card" style={{ textAlign:"center", marginTop:14 }}>
+      <div className="card" style={{ textAlign: "center", marginTop: 14 }}>
         <h3>🔥 {streak} Day Streak</h3>
-        <p style={{ fontSize:12, color:"#666" }}>Keep going strong!</p>
+        <p style={{ fontSize: 12, color: "#666" }}>Keep going strong!</p>
       </div>
 
       {/* HABIT BARS */}
@@ -633,69 +556,39 @@ function ProgressPage({ user }) {
 
         {habitStats.map(h => (
           <div key={h.name} style={{ marginBottom: 8 }}>
-
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: 12,
-              marginBottom: 4
-            }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                fontSize: 12,
+                marginBottom: 4
+              }}
+            >
               <span>{h.name}</span>
               <span>{h.percent}%</span>
             </div>
 
-            <div style={{
-              background: "#eee",
-              borderRadius: 10,
-              height: 8
-            }}>
-              <div style={{
-                width: `${h.percent}%`,
-                background: "#111",
-                height: "100%",
-                borderRadius: 10
-              }} />
+            <div
+              style={{
+                background: "#eee",
+                borderRadius: 10,
+                height: 8
+              }}
+            >
+              <div
+                style={{
+                  width: `${h.percent}%`,
+                  background: "#111",
+                  height: "100%",
+                  borderRadius: 10
+                }}
+              />
             </div>
-
           </div>
         ))}
       </div>
-
     </div>
   )
 }
-
-
-/* ================= NAV ================= */
-
-function NavItem({ icon, label, active, onClick }) {
-  return (
-    <div
-      onClick={onClick}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 2,
-        fontSize: 20,
-        padding: 6,
-        borderRadius: 12,
-        background: active ? "#111" : "transparent",
-        color: active ? "#fff" : "#111",
-        cursor: "pointer",
-        transition: "0.2s"
-      }}
-    >
-      <span>{icon}</span>
-      <span style={{
-        fontSize: 10,
-        fontWeight: 500
-      }}>
-        {label}
-      </span>
-    </div>
-  )
-}
-
 
 export default App

@@ -10,6 +10,12 @@ import {
   Tooltip,
   Legend
 } from "chart.js"
+import {
+  getLastDays,
+  calculateDailyPercent,
+  getWeeklyAverage,
+  getBestDay
+} from "/Users/nishant__1009/Desktop/Gym-Tracker/src/utils/calculations.js"
 
 ChartJS.register(
   LineElement,
@@ -26,15 +32,26 @@ function Compare() {
   const [stats, setStats] = useState([])
   const [loading, setLoading] = useState(true)
 
+  const palette = [
+    "#3b82f6", // blue
+    "#8b5cf6", // purple
+    "#22c55e", // green
+    "#f97316", // orange
+    "#ec4899", // pink
+    "#14b8a6", // teal
+    "#eab308", // yellow
+    "#6366f1"  // indigo
+  ]
+
   useEffect(() => {
     const fetchAll = async () => {
       try {
         setLoading(true)
 
-        // Fetch users
+        // Fetch all users with their streaks
         const { data: userData } = await supabase
           .from("Users")
-          .select("name")
+          .select("name, streak")
 
         if (!userData || userData.length === 0) {
           setLoading(false)
@@ -42,62 +59,50 @@ function Compare() {
         }
 
         const users = userData.map(u => u.name)
+        const userStreaks = {}
+        userData.forEach(u => {
+          userStreaks[u.name] = u.streak || 0
+        })
 
-        // Generate last 7 days labels
-        const days = []
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date()
-          d.setDate(d.getDate() - i)
-          days.push(d.toISOString().split("T")[0])
-        }
+        // Get last 7 days using helper
+        const days = getLastDays(7)
 
+        // Set chart labels (MM-DD format)
         setLabels(days.map(d => d.slice(5)))
 
         const allStats = []
         const chartSets = []
-        const palette = [
-          "#3b82f6", // blue
-          "#8b5cf6", // purple
-          "#22c55e", // green
-          "#f97316", // orange
-          "#ec4899", // pink
-          "#14b8a6", // teal
-          "#eab308", // yellow
-          "#6366f1"  // indigo
-        ]
-        
 
+        // Process each user
         for (let user of users) {
+          // Fetch logs for last 7 days
           const { data } = await supabase
             .from("daily_logs")
             .select("*")
             .eq("user_name", user)
             .in("date", days)
 
+          // Group by date
           const grouped = {}
-          days.forEach(d => grouped[d] = [])
+          days.forEach(d => (grouped[d] = []))
+          data?.forEach(l => grouped[l.date]?.push(l))
 
-          data?.forEach(l => {
-            grouped[l.date]?.push(l)
-          })
+          // Calculate daily percentages
+          const dailyPercents = days.map(d =>
+            calculateDailyPercent(grouped[d])
+          )
 
-          // Daily percents including 0 for empty days
-          const dailyPercents = days.map(d => {
-            const logs = grouped[d]
-            if (!logs || logs.length === 0) return 0
-            const done = logs.filter(l => l.completed).length
-            return Math.round((done / logs.length) * 100)
-          })
-
-          // Running average trend
+          // Running average trend (smoothed line)
           const trend = dailyPercents.map((percent, i) => {
             const slice = dailyPercents.slice(0, i + 1)
             const avg = slice.reduce((a, b) => a + b, 0) / slice.length
             return Math.round(avg)
           })
 
+          // Assign color from palette
           const color = palette[chartSets.length % palette.length]
 
+          // Build dataset for chart
           chartSets.push({
             label: user,
             data: trend,
@@ -106,18 +111,13 @@ function Compare() {
             borderColor: color,
             backgroundColor: color + "20"
           })
-          
 
-          // Stats using all days (including 0%)
-          const avg = Math.round(dailyPercents.reduce((a, b) => a + b, 0) / dailyPercents.length)
-          const best = Math.max(...dailyPercents)
+          // Calculate stats
+          const avg = getWeeklyAverage(dailyPercents)
+          const best = getBestDay(dailyPercents)
 
-          // Streak: consecutive 100% from end
-          let streak = 0
-          for (let i = dailyPercents.length - 1; i >= 0; i--) {
-            if (dailyPercents[i] > 40) streak++
-            else break
-          }
+          // Use DB streak (from Users table)
+          const streak = userStreaks[user]
 
           allStats.push({ user, avg, best, streak })
         }
@@ -125,7 +125,7 @@ function Compare() {
         setDatasets(chartSets)
         setStats(allStats)
       } catch (error) {
-        console.error("Error fetching data:", error)
+        console.error("Error fetching compare data:", error)
       } finally {
         setLoading(false)
       }
@@ -135,7 +135,11 @@ function Compare() {
   }, [])
 
   if (loading) {
-    return <div className="card" style={{ textAlign: "center", padding: 20 }}>Loading comparison...</div>
+    return (
+      <div className="card" style={{ textAlign: "center", padding: 20 }}>
+        Loading comparison...
+      </div>
+    )
   }
 
   return (
@@ -152,8 +156,8 @@ function Compare() {
               easing: "easeOutQuart"
             },
             scales: {
-              y: { 
-                min: 0, 
+              y: {
+                min: 0,
                 max: 100,
                 ticks: {
                   stepSize: 20
@@ -167,12 +171,14 @@ function Compare() {
       </div>
 
       {/* STATS GRID */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-        gap: 10,
-        marginTop: 12
-      }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+          gap: 10,
+          marginTop: 12
+        }}
+      >
         {stats.map(s => (
           <div key={s.user} className="card" style={{ textAlign: "center" }}>
             <strong>{s.user}</strong>

@@ -1,0 +1,102 @@
+/* opening.css - Clean, premium splash screen */
+
+.splash-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    text-align: center;
+    background: linear-gradient(135deg, #336aa1 0%, #e2e8f0 50%, #0d2c51 100%);
+    position: relative;
+  }
+  
+  .splash-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(circle at 30% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 70% 80%, rgba(59, 130, 246, 0.06) 0%, transparent 50%);
+    z-index: 1;
+  }
+  
+  .splash-container > * {
+    position: relative;
+    z-index: 2;
+  }
+  
+  .splash-title {
+    margin: 0 0 20px 0;
+    font-size: clamp(30px, 5vw, 52px);
+    font-weight: 800;
+    background: linear-gradient(135deg, #1e293b 30%, #334155 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.025em;
+  }
+  
+  .splash-quote {
+    margin: 0 0 36px 0;
+    font-size: clamp(16px, 4.5vw, 20px);
+    color: #64748b;
+    font-weight: 400;
+    max-width: 340px;
+    line-height: 1.55;
+  }
+  
+  .splash-selector {
+    width: 90%;
+    max-width: 300px;
+    padding: 18px 22px;
+    border-radius: 20px;
+    border: 1px solid rgba(71, 85, 105, 0.3);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 
+      0 20px 40px rgba(0, 0, 0, 0.08),
+      0 4px 12px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  
+  .splash-selector:focus-within {
+    transform: translateY(-3px);
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow: 
+      0 28px 55px rgba(0, 0, 0, 0.12),
+      0 8px 20px rgba(0, 0, 0, 0.08),
+      0 0 0 1px rgba(99, 102, 241, 0.2);
+  }
+  
+  .splash-selector select {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: #1e293b;
+    font-size: 16px;
+    font-weight: 500;
+    outline: none;
+    cursor: pointer;
+  }
+  
+  .splash-selector select option {
+    background: #f1f5f9;
+    color: #1e293b;
+  }
+  
+  .splash-footer {
+    position: absolute;
+    bottom: 24px;
+    font-size: 13px;
+    color: #2c3644;
+    font-weight: 500;
+    letter-spacing: 0.025em;
+  }
+  
+  .splash-selector:active {
+    transform: translateY(-1px) scale(0.99);
+  }
+  
