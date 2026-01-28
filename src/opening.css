@@ -1,16 +1,22 @@
 /* opening.css - Clean, premium splash screen */
 
 .splash-container {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 24px;
-    text-align: center;
-    background: linear-gradient(135deg, #336aa1 0%, #e2e8f0 50%, #0d2c51 100%);
-    position: relative;
-  }
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  text-align: center;
+  background: linear-gradient(135deg, #143d69 20%, #bad7fd 50%, #2a66ae 72%);
+  position: fixed;  /* ← ADD THIS */
+  top: 0;           /* ← ADD THIS */
+  left: 0;          /* ← ADD THIS */
+  right: 0;         /* ← ADD THIS */
+  width: 100%;      /* ← ADD THIS */
+  z-index: 10;      /* ← ADD THIS */
+}
+
   
   .splash-container::before {
     content: '';
